@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TOE II TOE: FISCAL SHOWDOWN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gb-bg: #8b956d;
+    --gb-darkest: #0f380f;
+    --gb-dark: #306230;
+    --gb-light: #8bac0f;
+    --gb-lightest: #9bbc0f;
+    --accent-red: #ff3344;
+    --accent-blue: #00e5ff;
+    --accent-gold: #ffbe0b;
+    --bezel: #1e1e24;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  body {
+    background: #090a0f;
+    color: #e0e0e0;
+    font-family: 'Press Start 2P', monospace;
+    margin: 0;
+    padding: 12px 10px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Game Boy / NeoGeo Pocket handheld chassis vibe */
+  .arcade-chassis {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(180deg, #2b2b36 0%, #1a1a24 100%);
+    border-radius: 20px;
+    border: 3px solid #3d3d4f;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.85), inset 0 2px 4px rgba(255,255,255,0.1);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  /* Screen Bezel with CRT Scanline Effect */
+  .crt-screen-frame {
+    background: #0b0c10;
+    border-radius: 10px;
+    border: 3px solid #14151f;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 2px 5px rgba(0,0,0,0.6);
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Scanlines overlay */
+  .crt-screen-frame::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 20;
+    background-size: 100% 3px, 3px 100%;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  /* Marquee Header */
+  .header-marquee {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed #3a3b50;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+
+  .badge-retro {
+    background: #ff0055;
+    color: #fff;
+    font-size: 7px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 8px rgba(255,0,85,0.6);
+  }
+
+  .title-text {
+    font-size: 10px;
+    color: var(--accent-gold);
+    text-shadow: 2px 2px #d90429, 0 0 8px rgba(255, 190, 11, 0.4);
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  /* Fighter HUD - Toe II Toe Health Meters */
+  .hud {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .fighter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .fighter-label {
+    font-size: 7px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .label-red { color: #ff5566; text-shadow: 0 0 6px rgba(255,85,102,0.4); }
+  .label-blue { color: #4deeea; text-shadow: 0 0 6px rgba(77,238,234,0.4); justify-content: flex-end; }
+
+  .hp-bar-container {
+    width: 100%;
+    height: 14px;
+    background: #151515;
+    border: 2px solid #555;
+    position: relative;
+    padding: 1px;
+    box-shadow: inset 0 2px 4px #000;
+  }
+
+  .bar-fill-red {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      90deg,
+      #ff2244,
+      #ff2244 5px,
+      #99001b 5px,
+      #99001b 7px
+    );
+    transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .bar-fill-blue {
+    width: 100%;
+    height: 100%;
+    margin-left: auto;
+    background: repeating-linear-gradient(
+      90deg,
+      #00ccff,
+      #00ccff 5px,
+      #00558f 5px,
+      #00558f 7px
+    );
+    transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .vs-badge {
+    font-size: 11px;
+    font-weight: bold;
+    color: #ffe600;
+    text-shadow: 2px 2px #ff0055;
+    background: #201e2e;
+    padding: 4px 6px;
+    border: 2px solid #555;
+    border-radius: 4px;
+  }
+
+  /* Ring Canvas Area */
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    border: 3px solid #2e2f42;
+    border-radius: 4px;
+    background: #0d0f17;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* Round & Status Bar */
+  .ring-status-banner {
+    background: #11121c;
+    border: 1px solid #2b2d42;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #8d99ae;
+    margin-top: 4px;
+  }
+
+  .pulse-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ff66;
+    box-shadow: 0 0 6px #00ff66;
+    margin-right: 4px;
+    animation: blink 1.2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Retro Controls Panel */
+  .hardware-controls {
+    background: #1f202b;
+    border-radius: 12px;
+    padding: 10px;
+    border: 2px solid #323447;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .input-label {
+    font-size: 7px;
+    color: #a0a5ba;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .api-input-wrap {
+    display: flex;
+    gap: 6px;
+  }
+
+  input[type="password"], input[type="text"] {
+    flex: 1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 9px 8px;
+    background: #090a10;
+    border: 2px solid #4a4d6b;
+    color: #4deeea;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="password"]:focus, input[type="text"]:focus {
+    border-color: var(--accent-gold);
+  }
+
+  /* Big Arcade Fight Button */
+  .btn-fight {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 11px 14px;
+    background: linear-gradient(180deg, #ffbe0b 0%, #fb5607 100%);
+    color: #120500;
+    border: 2px solid #ffee55;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #9a2b00, 0 6px 12px rgba(251,86,7,0.4);
+    transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-fight:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #9a2b00;
+  }
+
+  .btn-fight:disabled {
+    background: #444557;
+    color: #88899c;
+    border-color: #55576d;
+    box-shadow: none;
+    cursor: not-allowed;
+    filter: grayscale(80%);
+  }
+
+  /* Commentary & Blow-by-Blow Log */
+  .log-container {
+    background: #08090e;
+    border: 2px solid #2a2c3f;
+    border-radius: 6px;
+    padding: 8px 10px;
+    height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: inset 0 3px 8px #000;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #111;
+  }
+
+  .log-container::-webkit-scrollbar {
+    width: 5px;
+  }
+  .log-container::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+
+  .log-entry {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    line-height: 1.35;
+    padding: 4px 6px;
+    border-radius: 4px;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-red {
+    background: rgba(255, 34, 68, 0.12);
+    border-left: 3px solid #ff3344;
+    color: #ff99a8;
+  }
+
+  .log-blue {
+    background: rgba(0, 204, 255, 0.12);
+    border-left: 3px solid #00ccff;
+    color: #80e5ff;
+  }
+
+  .log-ref {
+    background: rgba(255, 190, 11, 0.15);
+    border-left: 3px solid var(--accent-gold);
+    color: #ffea75;
+    font-weight: bold;
+  }
+
+  /* D-pad and action button decorative bezel */
+  .chassis-accents {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 6px;
+  }
+
+  .speaker-grill {
+    display: flex;
+    gap: 4px;
+  }
+  .speaker-slot {
+    width: 20px;
+    height: 3px;
+    background: #171822;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 1px #000;
+  }
+
+  .brand-stamp {
+    font-size: 6px;
+    color: #555770;
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<div class="arcade-chassis">
+  <!-- Top Marquee -->
+  <div class="header-marquee">
+    <span class="badge-retro">T2T ARCADE</span>
+    <span class="title-text">TOE II TOE: 5 BANDS</span>
+    <span class="badge-retro" style="background:#00ccff; color:#000;">COIN 01</span>
+  </div>
+
+  <!-- Screen Bezel Frame -->
+  <div class="crt-screen-frame">
+    <!-- Retro Boxing HUD -->
+    <div class="hud">
+      <div class="fighter-card">
+        <div class="fighter-label label-red">
+          <span>🔴 POPULIST</span>
+        </div>
+        <div class="hp-bar-container">
+          <div id="hp-red" class="bar-fill-red"></div>
+        </div>
+      </div>
+
+      <div class="vs-badge">VS</div>
+
+      <div class="fighter-card">
+        <div class="fighter-label label-blue">
+          <span>FISCAL HAWK 🔵</span>
+        </div>
+        <div class="hp-bar-container">
+          <div id="hp-blue" class="bar-fill-blue"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas Ring -->
+    <div class="canvas-wrap">
+      <canvas id="ring" width="360" height="200"></canvas>
+    </div>
+
+    <!-- Match Bar -->
+    <div class="ring-status-banner">
+      <div><span class="pulse-indicator"></span>MATCH: TARIFF WARS</div>
+      <div id="round-indicator" style="color:var(--accent-gold);">RD 1/3</div>
+    </div>
+  </div>
+
+  <!-- Controls Panel -->
+  <div class="hardware-controls">
+    <div class="input-group">
+      <div class="input-label">
+        <span>SECURITY TOKEN</span>
+        <span style="color:#00e5ff;">OPENROUTER FREE KEY</span>
+      </div>
+      <div class="api-input-wrap">
+        <input type="password" id="apiKey" placeholder="sk-or-v1-..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <button id="startBtn" class="btn-fight" onclick="startFight()">
+          <span>🥊</span> FIGHT!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialogue and Judge Transcript -->
+  <div class="log-container" id="dialogue-log">
+    <div class="log-entry log-ref">
+      🔔 INSERT TOKEN & PRESS FIGHT TO COMMENCE BOUT!
+    </div>
+    <div class="log-entry log-ref" style="font-size:12px; color:#aaa;">
+      RULES: 3 Clinch Exchanges. The judge docks 10-25 HP for evasive economic math.
+    </div>
+  </div>
+
+  <!-- Decorative Handheld Finishers -->
+  <div class="chassis-accents">
+    <div class="speaker-grill">
+      <div class="speaker-slot"></div>
+      <div class="speaker-slot"></div>
+      <div class="speaker-slot"></div>
+    </div>
+    <div class="brand-stamp">FISCAL-BOY COLOR</div>
+  </div>
+</div>
+
+<script>
+  let hpRed = 100;
+  let hpBlue = 100;
+  let round = 1;
+  const canvas = document.getElementById('ring');
+  const ctx = canvas.getContext('2d');
+  const logEl = document.getElementById('dialogue-log');
+  
+  // Toe II Toe stance: Toe-to-toe distance close combat
+  let redX = 145, blueX = 215;
+  let redState = 'idle', blueState = 'idle'; // 'idle', 'punch', 'hit', 'block'
+  let impactParticles = [];
+  let flashEffect = 0;
+
+  // Pixel sprite drawing in authentic Toe II Toe pocket brawler style
+  function drawPixelSprite(x, y, isRed, state) {
+    ctx.save();
+    const facing = isRed ? 1 : -1;
+    const bodyColor = isRed ? '#ff2a4b' : '#00b4d8';
+    const skinColor = isRed ? '#ffd166' : '#f4a261';
+    const gloveColor = isRed ? '#ffaa00' : '#48cae4';
+    const shortsColor = isRed ? '#111118' : '#ffffff';
+
+    // Shake offset if hit
+    let shakeX = 0;
+    let shakeY = 0;
+    if (state === 'hit') {
+      shakeX = (Math.random() - 0.5) * 6;
+      shakeY = (Math.random() - 0.5) * 4;
+    }
+
+    ctx.translate(x + shakeX, y + shakeY);
+
+    // Cast Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 1. Boots / Legs
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-10, -14, 7, 14);
+    ctx.fillRect(3, -14, 7, 14);
+    // Boot laces
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-9, -8, 5, 2);
+    ctx.fillRect(4, -8, 5, 2);
+
+    // 2. Boxing Trunks
+    ctx.fillStyle = shortsColor;
+    ctx.fillRect(-12, -26, 24, 13);
+    // Waistband
+    ctx.fillStyle = '#ffbe0b';
+    ctx.fillRect(-12, -26, 24, 3);
+    // Side stripe
+    ctx.fillStyle = isRed ? '#ff2a4b' : '#0077b6';
+    ctx.fillRect(-12, -23, 3, 10);
+    ctx.fillRect(9, -23, 3, 10);
+
+    // 3. Torso / Shoulders
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(-13, -46, 26, 21);
+    // Chest / Definition line
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(-1, -44, 2, 14);
+
+    // 4. Head & AI Label
+    ctx.fillStyle = skinColor;
+    ctx.fillRect(-9, -60, 18, 15);
+
+    // Eyes / Expression
+    ctx.fillStyle = '#111';
+    if (state === 'hit') {
+      // X X eyes
+      ctx.fillRect(-6, -55, 3, 3);
+      ctx.fillRect(3, -55, 3, 3);
+    } else {
+      // Fierce brows
+      ctx.fillRect(-7, -56, 5, 2);
+      ctx.fillRect(2, -56, 5, 2);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-6, -54, 3, 3);
+      ctx.fillRect(3, -54, 3, 3);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(facing > 0 ? -4 : -6, -54, 2, 2);
+      ctx.fillRect(facing > 0 ? 5 : 3, -54, 2, 2);
+    }
+
+    // AI Header Screen Hat / Tag
+    ctx.fillStyle = '#1e2029';
+    ctx.fillRect(-18, -75, 36, 13);
+    ctx.strokeStyle = isRed ? '#ff4466' : '#00e5ff';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-18, -75, 36, 13);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '6px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText(isRed ? 'POPULIST' : 'CBO HAWK', 0, -66);
+
+    // 5. Arms & Gloves (Toe II Toe signature tight guard and lunging hook)
+    if (state === 'punch') {
+      // Extended glove punching across the face of opponent
+      ctx.fillStyle = bodyColor;
+      ctx.fillRect(-5 * facing, -44, 16 * facing, 8);
+
+      // Massive glove
+      ctx.fillStyle = gloveColor;
+      ctx.fillRect((12 * facing), -48, 14 * facing, 13);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect((14 * facing), -46, 3 * facing, 4); // shine
+
+      // Back guard glove
+      ctx.fillStyle = gloveColor;
+      ctx.fillRect(-12 * facing, -40, 8, 9);
+    } else {
+      // Guarded stance (classic retro peek-a-boo)
+      ctx.fillStyle = gloveColor;
+      // Front glove
+      ctx.fillRect(2 * facing, -48, 10, 11);
+      // Rear glove
+      ctx.fillRect(-10 * facing, -43, 9, 10);
+      // Glove highlights
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(4 * facing, -46, 3, 3);
+    }
+
+    ctx.restore();
+  }
+
+  function spawnImpact(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      impactParticles.push({
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.5) * 6 - 1,
+        life: 14,
+        maxLife: 14,
+        color: color
+      });
+    }
+  }
+
+  function renderRing() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Crowd / Arena Background with retro pixel dithering
+    ctx.fillStyle = '#0a0b12';
+    ctx.fillRect(0, 0, canvas.width, 100);
+
+    // Cheering silhouette crowd in background
+    ctx.fillStyle = '#141624';
+    for (let i = 0; i < canvas.width; i += 18) {
+      let bob = (Math.sin(Date.now() / 200 + i) * 3);
+      ctx.fillRect(i, 65 + bob, 14, 40);
+      ctx.fillRect(i + 2, 58 + bob, 10, 8);
+    }
+
+    // Camera flash lights occasionally
+    if (Math.random() < 0.04) {
+      const fx = Math.random() * canvas.width;
+      const fy = 40 + Math.random() * 40;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(fx - 2, fy - 2, 5, 5);
+    }
+
+    // 2. Boxing Ring Mat (Isometric perspective)
+    ctx.fillStyle = '#222538';
+    ctx.beginPath();
+    ctx.moveTo(0, 100);
+    ctx.lineTo(canvas.width, 100);
+    ctx.lineTo(canvas.width, 200);
+    ctx.lineTo(0, 200);
+    ctx.fill();
+
+    // Canvas texture grid
+    ctx.strokeStyle = '#2b2e46';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 24) {
+      ctx.beginPath();
+      ctx.moveTo(x, 100);
+      ctx.lineTo(x, 200);
+      ctx.stroke();
+    }
+
+    // Ring Center Decal
+    ctx.strokeStyle = 'rgba(255, 190, 11, 0.2)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(canvas.width / 2 - 40, 120, 80, 50);
+
+    // Ring Ropes (Neon stylized)
+    const ropeColors = ['#ff0055', '#ffffff', '#00e5ff'];
+    const ropeHeights = [102, 118, 134];
+    ropeColors.forEach((col, idx) => {
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, ropeHeights[idx]);
+      ctx.lineTo(canvas.width, ropeHeights[idx]);
+      ctx.stroke();
+    });
+
+    // 3. Render Fighters
+    const groundY = 175;
+    drawPixelSprite(redX, groundY, true, redState);
+    drawPixelSprite(blueX, groundY, false, blueState);
+
+    // 4. Hit Spark / Particle System
+    for (let i = impactParticles.length - 1; i >= 0; i--) {
+      let p = impactParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+
+      ctx.fillStyle = p.color;
+      let size = (p.life / p.maxLife) * 4;
+      ctx.fillRect(p.x, p.y, size, size);
+
+      if (p.life <= 0) impactParticles.splice(i, 1);
+    }
+
+    // Hit Flash
+    if (flashEffect > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${flashEffect * 0.4})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      flashEffect -= 0.1;
+    }
+
+    requestAnimationFrame(renderRing);
+  }
+  renderRing();
+
+  function log(text, type) {
+    const div = document.createElement('div');
+    div.className = `log-entry log-${type}`;
+    div.innerHTML = text;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  async function callAI(apiKey, systemPrompt, userMessage) {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+headers: {
+  "Authorization": `Bearer ${apiKey}`,
+  "Content-Type": "application/json",
+  "HTTP-Referer": window.location.origin || "http://localhost",
+  "X-Title": "Toe-II-Toe Fiscal Showdown"
+},
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.3-70b-instruct:free",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
+        ],
+        temperature: 0.8,
+        max_tokens: 150
+      })
+    });
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+  }
+
+  async function startFight() {
+    const key = document.getElementById('apiKey').value.trim();
+    if (!key) {
+      alert("Please enter a free OpenRouter API key!");
+      document.getElementById('apiKey').focus();
+      return;
+    }
+    const btn = document.getElementById('startBtn');
+    btn.disabled = true;
+    log("🔔 [ROUND 1] DING DING DING! TOE-TO-TOE BRAWL COMMENCED!", "ref");
+
+    let lastArgument = "Tariffs bring in billions and returning $5,000 checks directly to Americans gives working families purchasing power while domestic factories reshore!";
+    log(`🔴 <strong>POPULIST:</strong> "${lastArgument}"`, "red");
+
+    for (let i = 1; i <= 3; i++) {
+      round = i;
+      const roundEl = document.getElementById('round-indicator');
+      if (roundEl) roundEl.textContent = `RD ${round}/3`;
+
+      // BLUE CORNER (Hawk) Counters with punch
+      blueState = 'punch';
+      redState = 'hit';
+      flashEffect = 0.5;
+      spawnImpact(redX + 10, 135, '#00e5ff');
+      await new Promise(r => setTimeout(r, 450));
+      blueState = 'idle';
+      redState = 'idle';
+
+      const hawkPrompt = "You are an unsparing CBO fiscal economist. Dismantle the opposing populist argument in maximum 2 brutal sentences with hard math. NEVER agree, compliment, or concede.";
+      let hawkRebuttal = "Static accounting hallucination. A $5k dividend per adult costs $1.3 trillion annually, while all US imports total $3.8T—requiring a suicidal 35% across-the-board tariff rate that destroys consumer GDP.";
+      try {
+        hawkRebuttal = await callAI(key, hawkPrompt, lastArgument);
+        await new Promise(r => setTimeout(r, 1500));
+      } catch(e) {
+        console.warn("AI fallback used for Blue");
+      }
+      log(`🔵 <strong>FISCAL HAWK:</strong> "${hawkRebuttal}"`, "blue");
+
+      // REFEREE EVALUATES ROUND
+      const refPrompt = `You are a strict debate judge. Compare:
+      Claim: "${lastArgument}"
+      Rebuttal: "${hawkRebuttal}"
+      Give a damage penalty between 10 and 25 to whoever made the weaker, evasive argument.
+      Reply strictly in this JSON format: {"loser": "red"|"blue", "damage": number, "reason": "short explanation"}`;
+      
+      let decision = { loser: 'red', damage: 15, reason: 'Unverifiable balance sheet claims' };
+      try {
+        const refDecisionRaw = await callAI(key, refPrompt, "Judge this punch.");
+        await new Promise(r => setTimeout(r, 1500));
+        const jsonMatch = refDecisionRaw.match(/\{[\s\S]*?\}/);
+        if (jsonMatch) {
+          decision = JSON.parse(jsonMatch[0]);
+        }
+      } catch (err) {
+        const redWon = lastArgument.length > hawkRebuttal.length;
+        decision = {
+          loser: redWon ? 'blue' : 'red',
+          damage: 15,
+          reason: 'Referee ruled on macroeconomic ambiguity.'
+        };
+      }
+
+      log(`⚡ <strong>REF DECISION:</strong> ${decision.reason} (-${decision.damage} HP to ${decision.loser.toUpperCase()})`, "ref");
+      if (decision.loser === 'red') {
+        hpRed = Math.max(0, hpRed - decision.damage);
+        document.getElementById('hp-red').style.width = hpRed + '%';
+        spawnImpact(redX, 130, '#ff3344');
+      } else {
+        hpBlue = Math.max(0, hpBlue - decision.damage);
+        document.getElementById('hp-blue').style.width = hpBlue + '%';
+        spawnImpact(blueX, 130, '#00ccff');
+      }
+
+      if (hpRed <= 0 || hpBlue <= 0) break;
+
+      // RED CORNER (Populist) Counter-attacks
+      await new Promise(r => setTimeout(r, 600));
+      redState = 'punch';
+      blueState = 'hit';
+      flashEffect = 0.5;
+      spawnImpact(blueX - 10, 135, '#ff3344');
+      await new Promise(r => setTimeout(r, 450));
+      redState = 'idle';
+      blueState = 'idle';
+
+      const populistPrompt = "You are an aggressive populist economic advisor. Defend the $5,000 dividend and tariff plan against this orthodox critique in max 2 sentences. Attack their static assumptions. NO polite concessions.";
+      try {
+        lastArgument = await callAI(key, populistPrompt, hawkRebuttal);
+        await new Promise(r => setTimeout(r, 1500));
+      } catch(e) {
+        lastArgument = "Orthodox models ignore capital repatriation velocity and supply chain localization elasticity. Our tariff schedule penalizes foreign currency manipulators while putting raw cash into main street circulation!";
+      }
+      log(`🔴 <strong>POPULIST:</strong> "${lastArgument}"`, "red");
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    const winner = hpRed > hpBlue ? "RED CORNER (POPULIST)" : "BLUE CORNER (FISCAL HAWK)";
+    log(`🏆 <strong>KNOCKOUT! WINNER: ${winner}</strong>`, "ref");
+    btn.disabled = false;
+    btn.innerHTML = "<span>🥊</span> REMATCH!";
+  }
+</script>
+</body>
+</html>
